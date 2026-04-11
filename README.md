@@ -34,3 +34,12 @@ It allows searching hotels by city/country and retrieving available room rates.
 
 ```properties
 liteapi.api-key=your_sandbox_api_key_here
+```
+
+Below are the images for the 2 flows in the application (as mentioned above):
+<img width="734" height="332" alt="image" src="https://github.com/user-attachments/assets/bbe31717-6416-4d25-9f23-5cf476ffb093" />
+<img width="710" height="336" alt="image" src="https://github.com/user-attachments/assets/1cc1ff61-32b4-4bf5-aa5a-0828aebc046e" />
+<img width="860" height="427" alt="image" src="https://github.com/user-attachments/assets/dac90cdf-b3ce-4047-bf24-75878eabd1de" />
+
+
+
