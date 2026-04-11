@@ -1,0 +1,11 @@
+spring.application.name=liteapi-hotel-client
+spring.main.web-application-type=none
+
+# LiteAPI Configuration
+liteapi.base-url=https://api.liteapi.travel/v3.0
+# Put your Sandbox API Key here (never commit this file with real key)
+liteapi.api-key=YOUR_SANDBOX_API_KEY_HERE
+
+# Optional: Clean console output
+spring.main.banner-mode=off
+logging.level.root=INFO
