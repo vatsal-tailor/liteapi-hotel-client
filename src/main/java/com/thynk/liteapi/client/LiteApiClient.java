@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class LiteApiClient {
@@ -26,23 +27,23 @@ public class LiteApiClient {
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
 
-        System.out.println("✅ LiteApiClient initialized");
+        System.out.println("LiteApiClient initialized");
         System.out.println("   Base URL: " + baseUrl);
-        System.out.println("   API Key (first 8 chars): " + (apiKey != null && apiKey.length() > 8 ? apiKey.substring(0, 8) + "..." : "[MISSING]"));
+//        System.out.println("   API Key (first 8 chars): " + (apiKey != null && apiKey.length() > 8 ? apiKey.substring(0, 8) + "..." : "[MISSING]"));
     }
 
-    // Flow 1: Search Hotels by City (CORRECTED endpoint + parameters)
+    // Flow 1: Search Hotels by City
     public List<Hotel> searchHotels(String cityName, String countryCode) {
         String url = baseUrl + "/data/hotels?cityName=" + cityName + "&countryCode=" + countryCode;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Api-Key", apiKey);     // ← Official header name
+        headers.set("X-Api-Key", apiKey);
         headers.set("Accept", "application/json");
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        System.out.println("🔍 Calling: " + url);   // debug
-        System.out.println("🔑 DEBUG - Using header X-Api-Key");
+        System.out.println("Calling: " + url);   // debug
+        System.out.println("DEBUG - Using header X-Api-Key");
 
         ResponseEntity<HotelSearchResponse> response = restTemplate.exchange(
                 url,
@@ -55,7 +56,7 @@ public class LiteApiClient {
         return (body != null && body.getData() != null) ? body.getData() : List.of();
     }
 
-    // Flow 2: Get Hotel Rates (already correct)
+    // Flow 2: Get Hotel Rates
     public List<HotelRate> getHotelRates(String hotelId) {
         String url = baseUrl + "/hotels/rates";
 
@@ -78,7 +79,7 @@ public class LiteApiClient {
 
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-        System.out.println("📤 Requesting rates for Hotel ID: " + hotelId);
+        System.out.println("Requesting rates for Hotel ID: " + hotelId);
 
         ResponseEntity<HotelRateResponse> response = restTemplate.exchange(
                 url,
@@ -88,57 +89,17 @@ public class LiteApiClient {
         );
 
         HotelRateResponse body = response.getBody();
-//        System.out.println("=== RAW JSON RESPONSE ===");
-//        ResponseEntity<String> raw = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-//        System.out.println(raw.getBody());
 
         if (body == null || body.getData() == null || body.getData().isEmpty()) {
             System.out.println("No rates data in response.");
             return List.of();
         }
 
-        // Clean & safe way to flatten + set roomName
-        List<HotelRate> allRates = new ArrayList<>();
-
-        for (HotelRateItem item : body.getData()) {
-            if (item.getRoomTypes() == null) continue;
-
-            for (RoomType roomType : item.getRoomTypes()) {
-                //String roomName = roomType.getName();
-
-                if (roomType.getRates() != null) {
-//                    for (HotelRate rate : roomType.getRates()) {
-//                        if (roomName != null) {
-//                            rate.setRoomName(roomName);   // Safe setter call
-//                        }
-//                        allRates.add(rate);
-//                    }
-                    allRates.addAll(roomType.getRates());
-                }
-            }
-        }
-
-        return allRates;
-
-//        if (body != null && body.getData() != null && !body.getData().isEmpty()) {
-//            return body.getData().stream()
-//                    .flatMap(item -> item.getRoomTypes() != null
-//                            ? item.getRoomTypes().stream()
-//                            : java.util.stream.Stream.empty())
-//                    .flatMap(roomType -> {
-//                        String roomName = roomType.getName();
-//                        return (roomType.getRates() != null
-//                                ? roomType.getRates().stream()
-//                                : java.util.stream.Stream.empty());
-////                                .peek(rate -> {
-////                                    if (roomName != null) {
-////                                        rate.setRoomName(roomName);   // This line was causing the compile error
-////                                    }
-////                                });
-//                    })
-//                    .toList();
-//        }
-//
-//        return List.of();
+        return body.getData().stream()
+                .filter(item -> item.getRoomTypes() != null)
+                .flatMap(item -> item.getRoomTypes().stream())
+                .filter(roomType -> roomType.getRates() != null)
+                .flatMap(roomType -> roomType.getRates().stream())
+                .collect(Collectors.toList());
     }
 }

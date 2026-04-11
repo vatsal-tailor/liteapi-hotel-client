@@ -18,7 +18,7 @@ public class LiteApiService {
     }
 
     public void searchHotelsByCity(String cityName, String countryCode) {
-        System.out.println("🔍 Searching hotels in " + cityName + ", " + countryCode + "...\n");
+        System.out.println("Searching hotels in " + cityName + ", " + countryCode + "...\n");
 
         List<Hotel> hotels = client.searchHotels(cityName, countryCode);
 
@@ -27,8 +27,8 @@ public class LiteApiService {
             return;
         }
 
-        System.out.println("✅ Found " + hotels.size() + " hotels:\n");
-        for (int i = 0; i < Math.min(10, hotels.size()); i++) {  // show first 10
+        System.out.println("Found " + hotels.size() + " hotels:\n");
+        for (int i = 0; i < Math.min(10, hotels.size()); i++) {
             System.out.println((i+1) + ". " + hotels.get(i));
         }
 
@@ -39,7 +39,7 @@ public class LiteApiService {
 
         if (choice >= 0 && choice < hotels.size()) {
             String selectedHotelId = hotels.get(choice).getId();
-            System.out.println("\n📌 Getting rates for Hotel ID: " + selectedHotelId);
+            System.out.println("\nGetting rates for Hotel ID: " + selectedHotelId);
             getHotelRates(selectedHotelId);
         }
     }
@@ -51,10 +51,10 @@ public class LiteApiService {
             System.out.println("No rates available for this hotel (try different dates).");
             return;
         }
-
-        System.out.println("\n✅ Available Room Rates:\n");
-        for (HotelRate rate : rates) {
-            System.out.println(rate);
+        System.out.println("Found " + rates.size() + " hotel rooms:\n");
+        System.out.println("\nAvailable Room Rates:\n");
+        for (int i = 0; i < Math.min(20, rates.size()); i++) {
+            System.out.println((i+1) + ". " + rates.get(i));
         }
     }
 }

@@ -36,14 +36,12 @@ public class LiteapiHotelClientApplication {
 
 			if (city.isEmpty()) {
 				city = "New York";
-				System.out.println("→ Using default city: New York");
+				System.out.println("Using default city: New York");
 			}
 			if (country.isEmpty()) {
 				country = "US";
-				System.out.println("→ Using default country: US");
+				System.out.println("Using default country: US");
 			}
-			//String city = args.length > 0 ? args[0] : "Mumbai";
-			//String country = args.length > 1 ? args[1] : "IN";
 
 			service.searchHotelsByCity(city, country);
 		};
