@@ -7,6 +7,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -39,21 +42,30 @@ public class LiteApiClient {
         headers.set("Accept", "application/json");
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
+        try {
+            System.out.println("Calling: " + url);
 
-        System.out.println("Calling: " + url);
+            ResponseEntity<HotelSearchResponse> response = restTemplate.exchange(
+                    url, HttpMethod.GET, entity, HotelSearchResponse.class);
 
-        ResponseEntity<HotelSearchResponse> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                HotelSearchResponse.class
-        );
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                System.err.println("Unexpected status code: " + response.getStatusCode());
+            }
 
-        if(response.getStatusCode().is2xxSuccessful()) {
             HotelSearchResponse body = response.getBody();
             return (body != null && body.getData() != null) ? body.getData() : List.of();
-        } else {
-            System.err.println("Search failed with status: " + response.getStatusCode() + " - " + response.getBody());
+
+        } catch (HttpClientErrorException e) {   // 4xx errors
+            System.err.println("Client Error (" + e.getStatusCode() + "): " + e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
+                System.err.println("Check if your API key is correct and has proper permissions.");
+            }
+            return List.of();
+        } catch (HttpServerErrorException e) {   // 5xx errors
+            System.err.println("Server Error (" + e.getStatusCode() + "): LiteAPI service is temporarily unavailable.");
+            return List.of();
+        } catch (RestClientException e) {
+            System.err.println("Failed to connect to LiteAPI: " + e.getMessage());
             return List.of();
         }
     }
@@ -80,34 +92,33 @@ public class LiteApiClient {
         """.formatted(hotelId);
 
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+        try {
+            System.out.println("Requesting rates for Hotel ID: " + hotelId);
 
-        System.out.println("Requesting rates for Hotel ID: " + hotelId);
+            ResponseEntity<HotelRateResponse> response = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, HotelRateResponse.class);
 
-        ResponseEntity<HotelRateResponse> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                entity,
-                HotelRateResponse.class
-        );
-
-        if(response.getStatusCode().is2xxSuccessful()) {
             HotelRateResponse body = response.getBody();
 
-            if (body == null || body.getData() == null || body.getData().isEmpty()) {
-                return List.of();
+            if (body != null && body.getData() != null && !body.getData().isEmpty()) {
+                return body.getData().stream()
+                        .flatMap(item -> item.getRoomTypes() != null ? item.getRoomTypes().stream() : java.util.stream.Stream.empty())
+                        .flatMap(roomType -> roomType.getRates() != null ? roomType.getRates().stream() : java.util.stream.Stream.empty())
+                        .toList();
             }
+            return List.of();
 
-            return body.getData().stream()
-                    .filter(item -> item.getRoomTypes() != null)
-                    .flatMap(item -> item.getRoomTypes().stream())
-                    .filter(roomType -> roomType.getRates() != null)
-                    .flatMap(roomType -> roomType.getRates().stream())
-                    .collect(Collectors.toList());
-        } else {
-            System.err.println("xRates request failed with status: " + response.getStatusCode());
-            if (response.getStatusCode().value() == 429) {
-                System.err.println("Rate limit exceeded. Try again later.");
+        } catch (HttpClientErrorException e) {   // 4xx
+            System.err.println("Client Error (" + e.getStatusCode() + "): " + e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 400) {
+                System.err.println("   → Invalid request. Check hotel ID or dates.");
             }
+            return List.of();
+        } catch (HttpServerErrorException e) {   // 5xx
+            System.err.println("Server Error (" + e.getStatusCode() + "): LiteAPI is experiencing issues.");
+            return List.of();
+        } catch (RestClientException e) {
+            System.err.println("Failed to fetch rates: " + e.getMessage());
             return List.of();
         }
     }
