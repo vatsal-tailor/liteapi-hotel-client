@@ -32,16 +32,30 @@ public class LiteApiService {
             System.out.println((i+1) + ". " + hotels.get(i));
         }
 
-        // Ask user to pick a hotel for Flow 2
-        System.out.print("\nEnter the number of the hotel to see rates (1-" + Math.min(10, hotels.size()) + "): ");
         Scanner scanner = new Scanner(System.in);
-        int choice = scanner.nextInt() - 1;
+        int choice = - 1;
 
-        if (choice >= 0 && choice < hotels.size()) {
-            String selectedHotelId = hotels.get(choice).getId();
-            System.out.println("\nGetting rates for Hotel ID: " + selectedHotelId);
-            getHotelRates(selectedHotelId);
+        while (choice < 0 || choice >= Math.min(10, hotels.size())) {
+            System.out.print("\nEnter the number of the hotel to see rates (1-"
+                    + Math.min(10, hotels.size()) + "): ");        // Ask user to pick a hotel for Flow 2
+
+            if (scanner.hasNextInt()) {
+                choice = scanner.nextInt() - 1;
+
+                if (choice < 0 || choice >= hotels.size()) {
+                    System.out.println("Invalid choice. Please enter a number between 1 and "
+                            + Math.min(10, hotels.size()) + ".");
+                }
+            } else {
+                System.out.println("Please enter a valid number.");
+                scanner.next(); // consume the invalid input
+            }
         }
+
+        String selectedHotelId = hotels.get(choice).getId();
+        System.out.println("Getting rates for Hotel ID: " + selectedHotelId);
+        getHotelRates(selectedHotelId);
+
     }
 
     private void getHotelRates(String hotelId) {

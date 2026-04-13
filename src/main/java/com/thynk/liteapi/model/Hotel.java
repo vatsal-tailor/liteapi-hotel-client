@@ -8,7 +8,7 @@ public class Hotel {
 
     // Getters and Setters
     public String getId() { return id; }
-    public void setHotelId(String id) { this.id = id; }
+    public void setId(String id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -17,7 +17,7 @@ public class Hotel {
     public void setAddress(String address) { this.address = address; }
 
     public Double getStars() { return stars; }
-    public void setStarRating(Double stars) { this.stars = stars; }
+    public void setStars(Double stars) { this.stars = stars; }
 
     @Override
     public String toString() {

@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,8 +28,7 @@ public class LiteApiClient {
 
         System.out.println("LiteApiClient initialized");
         System.out.println("   Base URL: " + baseUrl);
-//        System.out.println("   API Key (first 8 chars): " + (apiKey != null && apiKey.length() > 8 ? apiKey.substring(0, 8) + "..." : "[MISSING]"));
-    }
+   }
 
     // Flow 1: Search Hotels by City
     public List<Hotel> searchHotels(String cityName, String countryCode) {
@@ -42,8 +40,7 @@ public class LiteApiClient {
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        System.out.println("Calling: " + url);   // debug
-        System.out.println("DEBUG - Using header X-Api-Key");
+        System.out.println("Calling: " + url);
 
         ResponseEntity<HotelSearchResponse> response = restTemplate.exchange(
                 url,
@@ -52,8 +49,13 @@ public class LiteApiClient {
                 HotelSearchResponse.class
         );
 
-        HotelSearchResponse body = response.getBody();
-        return (body != null && body.getData() != null) ? body.getData() : List.of();
+        if(response.getStatusCode().is2xxSuccessful()) {
+            HotelSearchResponse body = response.getBody();
+            return (body != null && body.getData() != null) ? body.getData() : List.of();
+        } else {
+            System.err.println("Search failed with status: " + response.getStatusCode() + " - " + response.getBody());
+            return List.of();
+        }
     }
 
     // Flow 2: Get Hotel Rates
@@ -67,8 +69,8 @@ public class LiteApiClient {
 
         String requestBody = """
         {
-          "checkin": "2026-04-10",
-          "checkout": "2026-04-12",
+          "checkin": "2026-04-14",
+          "checkout": "2026-04-20",
           "currency": "USD",
           "guestNationality": "US",
           "occupancies": [{"adults": 2, "children": []}],
@@ -88,18 +90,25 @@ public class LiteApiClient {
                 HotelRateResponse.class
         );
 
-        HotelRateResponse body = response.getBody();
+        if(response.getStatusCode().is2xxSuccessful()) {
+            HotelRateResponse body = response.getBody();
 
-        if (body == null || body.getData() == null || body.getData().isEmpty()) {
-            System.out.println("No rates data in response.");
+            if (body == null || body.getData() == null || body.getData().isEmpty()) {
+                return List.of();
+            }
+
+            return body.getData().stream()
+                    .filter(item -> item.getRoomTypes() != null)
+                    .flatMap(item -> item.getRoomTypes().stream())
+                    .filter(roomType -> roomType.getRates() != null)
+                    .flatMap(roomType -> roomType.getRates().stream())
+                    .collect(Collectors.toList());
+        } else {
+            System.err.println("xRates request failed with status: " + response.getStatusCode());
+            if (response.getStatusCode().value() == 429) {
+                System.err.println("Rate limit exceeded. Try again later.");
+            }
             return List.of();
         }
-
-        return body.getData().stream()
-                .filter(item -> item.getRoomTypes() != null)
-                .flatMap(item -> item.getRoomTypes().stream())
-                .filter(roomType -> roomType.getRates() != null)
-                .flatMap(roomType -> roomType.getRates().stream())
-                .collect(Collectors.toList());
     }
 }
