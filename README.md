@@ -36,10 +36,21 @@ It allows searching hotels by city/country and retrieving available room rates.
 liteapi.api-key=your_sandbox_api_key_here
 ```
 
+### To run the application
+1. Run the file LiteapiHotelClientApplication in any IDE of your choice. 
+
 Below are the images for the 2 flows in the application (as mentioned above):
-<img width="734" height="332" alt="image" src="https://github.com/user-attachments/assets/bbe31717-6416-4d25-9f23-5cf476ffb093" />
-<img width="710" height="336" alt="image" src="https://github.com/user-attachments/assets/1cc1ff61-32b4-4bf5-aa5a-0828aebc046e" />
-<img width="860" height="427" alt="image" src="https://github.com/user-attachments/assets/dac90cdf-b3ce-4047-bf24-75878eabd1de" />
+Flow 1:
+<img width="722" height="337" alt="image" src="https://github.com/user-attachments/assets/80e771c3-cd3a-4ac7-832c-4d745b26a57d" />
+
+<img width="824" height="360" alt="image" src="https://github.com/user-attachments/assets/b93aecf3-806b-467b-9024-5d46f151eb6d" />
+
+Flow 2:
+<img width="848" height="368" alt="image" src="https://github.com/user-attachments/assets/7ac7c5fc-09cd-4ae5-9289-f2d61ef5720f" />
+
+<img width="857" height="381" alt="image" src="https://github.com/user-attachments/assets/6d35f01c-93a4-4059-849c-c55b1cbc7447" />
+
+
 
 
 
